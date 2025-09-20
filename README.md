@@ -110,11 +110,25 @@ GET /health
 ```
 Returns service status and model information.
 
+**Response:**
+```json
+{
+  "status": "healthy",
+  "timestamp": "2025-09-20T10:30:00",
+  "model_loaded": true,
+  "students_count": 1000,
+  "internships_count": 2000
+}
+```
+
 #### Get Students
 ```http
-GET /students
+GET /students?limit=100
 ```
 Returns list of all students in the system.
+
+**Parameters:**
+- `limit` (optional): Maximum number of students to return (default: 100)
 
 #### Get Internships
 ```http
@@ -122,11 +136,23 @@ GET /internships?limit=100
 ```
 Returns list of available internships.
 
+**Parameters:**
+- `limit` (optional): Maximum number of internships to return (default: 100)
+
 #### Recommend for Existing Student
 ```http
 POST /recommend/student/{student_id}?top_n=5
 ```
 Get recommendations for a student by their ID.
+
+**Parameters:**
+- `student_id` (path): Student identifier
+- `top_n` (optional): Number of recommendations to return (default: 5)
+
+**Example:**
+```bash
+curl -X POST "http://localhost:8000/recommend/student/1?top_n=5"
+```
 
 #### Recommend for New Student
 ```http
@@ -139,11 +165,25 @@ Content-Type: application/json
 }
 ```
 
+**Parameters:**
+- `top_n` (optional): Number of recommendations to return (default: 5)
+
+**Example:**
+```bash
+curl -X POST "http://localhost:8000/recommend/new-student" \
+     -H "Content-Type: application/json" \
+     -d '{"name": "John Doe", "skills": "python, machine learning, data science"}'
+```
+
 #### Batch Recommendations
 ```http
 POST /recommend/batch?top_n=5&limit=10
 ```
 Get recommendations for multiple students.
+
+**Parameters:**
+- `top_n` (optional): Number of recommendations per student (default: 5)
+- `limit` (optional): Maximum number of students to process (default: 10)
 
 ### Response Format
 
@@ -152,6 +192,42 @@ All recommendation endpoints return structured data including:
 - Ranked list of internship recommendations
 - Similarity scores
 - Internship details (title, company, domain, stipend, required skills)
+
+**Example Recommendation Response:**
+```json
+{
+  "student_id": 1,
+  "student_name": "John Doe",
+  "student_skills": ["python", "machine learning", "data science"],
+  "recommendations": [
+    {
+      "rank": 1,
+      "internship_id": 101,
+      "internship_title": "Data Science Intern",
+      "company": "Tech Corp",
+      "similarity_score": 0.8636,
+      "required_skills": "python, machine learning, tensorflow",
+      "stipend": "25000",
+      "domain": "Technology"
+    },
+    {
+      "rank": 2,
+      "internship_id": 102,
+      "internship_title": "ML Engineer Intern",
+      "company": "AI Solutions",
+      "similarity_score": 0.7829,
+      "required_skills": "python, scikit-learn, data analysis",
+      "stipend": "30000",
+      "domain": "Technology"
+    }
+  ],
+  "total_recommendations": 5
+}
+```
+
+### Testing the API
+
+For detailed API testing examples and more comprehensive documentation, see `README_API.md`.
 
 ## Data Format
 
