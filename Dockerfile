@@ -30,10 +30,6 @@ COPY Recommender/ ./Recommender/
 # Create necessary directories and files
 RUN mkdir -p Recommender/model Recommender/dataset
 
-# Copy sample data if needed (remove these lines if data should be mounted)
-# COPY Recommender/dataset/*.csv ./Recommender/dataset/
-# COPY Recommender/model/*.pkl ./Recommender/model/
-
 # Expose port
 EXPOSE 8000
 
@@ -41,5 +37,15 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD python -c "import requests; requests.get('http://localhost:8000/health')" || exit 1
 
+# Create a startup script that runs all three steps
+RUN echo '#!/bin/bash\n\
+echo "Step 1: Running data preprocessing script..."\n\
+cd /app && python -m Recommender.dataset.script\n\
+echo "Step 2: Training the model..."\n\
+cd /app && python -m Recommender.train\n\
+echo "Step 3: Starting FastAPI server..."\n\
+cd /app && uvicorn main:app --host 0.0.0.0 --port 8000' > /app/startup.sh && \
+    chmod +x /app/startup.sh
+
 # Command to run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["/app/startup.sh"]

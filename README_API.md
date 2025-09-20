@@ -4,21 +4,44 @@ A high-performance RESTful web service for the PM Intern Recommender system that
 
 ## Quick Start
 
-### 1. Install Dependencies
+### Option 1: Docker (Recommended)
 ```bash
-pip install -r requirements.txt
+# Using pre-built Docker image
+docker run -p 8000:8000 razzat/internship_recommender
+
+# Or build locally
+docker build -t razzat/internship_recommender .
+docker run -p 8000:8000 razzat/internship_recommender
 ```
 
-### 2. Train the Model (if not already done)
-```bash
-cd Recommender
-python train.py
-```
+The Docker container automatically:
+1. Generates sample datasets (1000 students, 2000 internships)
+2. Trains the ML model
+3. Starts the FastAPI server
 
-### 3. Start the API Server
-```bash
-python main.py
-```
+### Option 2: Manual Setup
+
+1. **Install Dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. **Generate Data (optional)**
+   ```bash
+   cd Recommender/dataset
+   python script.py
+   ```
+
+3. **Train the Model**
+   ```bash
+   cd Recommender
+   python train.py
+   ```
+
+4. **Start the API Server**
+   ```bash
+   python main.py
+   ```
 
 Or using uvicorn directly:
 ```bash
@@ -29,6 +52,22 @@ The API will be available at:
 - **API Base URL**: http://localhost:8000
 - **Interactive Docs**: http://localhost:8000/docs
 - **ReDoc**: http://localhost:8000/redoc
+
+### Docker Startup Process
+
+When using Docker, you'll see the following startup sequence:
+
+```
+Step 1: Running data preprocessing script...
+✅ Files generated: internships.csv, students.csv
+Step 2: Training the model...
+Loading datasets...
+Training completed successfully!
+Step 3: Starting FastAPI server...
+INFO: Uvicorn running on http://0.0.0.0:8000
+```
+
+This ensures the system is fully prepared with trained models before accepting API requests.
 
 ## API Endpoints
 

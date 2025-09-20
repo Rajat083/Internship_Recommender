@@ -1,10 +1,15 @@
 # PM Intern Recommender - Docker Deployment
 
-This directory contains Docker configuration for deploying the PM Intern Recommender API.
+This directory contains Docker configuration for deploying the PM Intern Recommender API with automatic data generation and model training.
 
 ## Quick Start
 
-### Using Docker Compose (Recommended)
+### Option 1: Using Pre-built Image (Fastest)
+```bash
+docker run -p 8000:8000 razzat/internship_recommender
+```
+
+### Option 2: Using Docker Compose
 ```bash
 # Build and start the service
 docker-compose up --build
@@ -16,24 +21,50 @@ docker-compose up -d --build
 docker-compose down
 ```
 
-### Using Docker Commands
+### Option 3: Build Locally
 ```bash
 # Build the image
-docker build -t pm-intern-recommender .
+docker build -t razzat/internship_recommender .
 
-# Run the container with mounted data
-docker run -d \
-  --name pm-intern-recommender \
-  -p 8000:8000 \
-  -v "$(pwd)/Recommender/dataset:/app/Recommender/dataset:ro" \
-  -v "$(pwd)/Recommender/model:/app/Recommender/model:ro" \
-  pm-intern-recommender
+# Run the container
+docker run -p 8000:8000 razzat/internship_recommender
 ```
 
 ### Windows Batch Script
 ```cmd
 # Run the provided batch script
 scripts\docker-run.bat
+```
+
+## Container Startup Process
+
+The Docker container executes a complete end-to-end pipeline:
+
+### Step 1: Data Generation
+- Runs `Recommender/dataset/script.py`
+- Generates 1000 student profiles and 2000 internship listings
+- Creates `students.csv` and `internships.csv` files
+
+### Step 2: Model Training
+- Runs `Recommender/train.py`
+- Trains TF-IDF vectorizer and k-NN model
+- Saves trained models to `model/` directory
+
+### Step 3: API Server Startup
+- Starts FastAPI server using uvicorn
+- Loads trained models into memory
+- Makes API available on port 8000
+
+### Expected Output
+```
+Step 1: Running data preprocessing script...
+✅ Files generated: internships.csv, students.csv
+Step 2: Training the model...
+Loading datasets...
+Loaded 1000 students and 2000 internships
+Training completed successfully!
+Step 3: Starting FastAPI server...
+INFO: Uvicorn running on http://0.0.0.0:8000
 ```
 
 ## Access the API
@@ -50,10 +81,11 @@ scripts\docker-run.bat
 - `PYTHONUNBUFFERED`: Set to `1` for real-time logs
 - `PYTHONDONTWRITEBYTECODE`: Set to `1` to prevent .pyc files
 
-### Volumes
-The Docker setup mounts the following directories:
-- `./Recommender/dataset` → `/app/Recommender/dataset` (read-only)
-- `./Recommender/model` → `/app/Recommender/model` (read-only)
+### Volumes (Not Required)
+The new Docker setup is fully self-contained and doesn't require external volumes:
+- Data generation happens inside the container
+- Model training occurs during container startup
+- All files are created and managed internally
 
 ### Ports
 - **Container Port:** 8000
@@ -61,15 +93,17 @@ The Docker setup mounts the following directories:
 
 ## Data Requirements
 
-Before running the container, ensure you have:
+**No external data requirements!** The container automatically:
 
-1. **Dataset files** in `Recommender/dataset/`:
-   - `students.csv`
-   - `internships.csv`
+1. **Generates sample datasets** using `script.py`:
+   - Creates 1000 diverse student profiles
+   - Generates 2000 internship opportunities across 7 domains
+   - Produces realistic skill combinations and requirements
 
-2. **Model files** in `Recommender/model/`:
-   - `trained_model.pkl`
-   - `vectorizer.pkl`
+2. **Trains ML models** using `train.py`:
+   - TF-IDF vectorizer for skill text processing
+   - k-nearest neighbors model for similarity matching
+   - Automatically saves trained models
 
 ## Docker Commands
 
@@ -79,41 +113,53 @@ Before running the container, ensure you have:
 docker ps
 
 # View logs
-docker logs pm-intern-recommender
+docker logs <container_id>
 
-# Follow logs in real-time
-docker logs -f pm-intern-recommender
+# Follow logs in real-time  
+docker logs -f <container_id>
 
 # Execute commands in container
-docker exec -it pm-intern-recommender bash
+docker exec -it <container_id> bash
 
 # Stop container
-docker stop pm-intern-recommender
+docker stop <container_id>
 
 # Remove container
-docker rm pm-intern-recommender
+docker rm <container_id>
 
 # Remove image
-docker rmi pm-intern-recommender
+docker rmi razzat/internship_recommender
 ```
 
 ### Health Check
 ```bash
-# Check container health
-docker inspect --format='{{.State.Health.Status}}' pm-intern-recommender
-
 # Manual health check
 curl http://localhost:8000/health
+
+# Expected response:
+# {
+#   "status": "healthy",
+#   "timestamp": "2025-09-20T10:30:00",
+#   "ml_model_loaded": true,
+#   "students_count": 1000,
+#   "internships_count": 2000
+# }
 ```
 
 ## Production Deployment
 
+### Docker Hub Deployment
+The image is available on Docker Hub:
+```bash
+docker pull razzat/internship_recommender
+docker run -p 8000:8000 razzat/internship_recommender
+```
+
 ### Security Considerations
-1. **Remove development volumes** in production
-2. **Use secrets management** for sensitive data
-3. **Configure reverse proxy** (nginx/traefik)
-4. **Enable HTTPS/TLS**
-5. **Set up monitoring and logging**
+1. **Use production-grade WSGI server** (already configured with uvicorn)
+2. **Configure reverse proxy** (nginx/traefik) for HTTPS
+3. **Set up monitoring and logging**
+4. **Resource limits** for container memory/CPU
 
 ### Example Production docker-compose.yml
 ```yaml

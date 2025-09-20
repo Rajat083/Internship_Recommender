@@ -63,11 +63,13 @@ The PM Intern Recommender is a FastAPI-based web service that provides intellige
    pip install -r requirements.txt
    ```
 
-4. **Prepare data**
-   - Place `students.csv` and `internships.csv` in `Recommender/dataset/`
-   - Ensure the CSV files contain the required columns
+4. **Generate sample data (optional - Docker does this automatically)**
+   ```bash
+   cd Recommender/dataset
+   python script.py
+   ```
 
-5. **Train the model**
+5. **Train the model (optional - Docker does this automatically)**
    ```bash
    cd Recommender
    python train.py
@@ -78,18 +80,36 @@ The PM Intern Recommender is a FastAPI-based web service that provides intellige
    python main.py
    ```
 
-### Docker Setup
+**Note**: When using Docker, steps 4-5 are handled automatically. For manual setup, you can either run these steps or provide your own CSV files in the correct format.
 
-1. **Using Docker Compose (Recommended)**
+### Docker Setup (Recommended)
+
+The Docker container automatically handles all setup steps including data generation, model training, and API startup.
+
+1. **Build and run with Docker**
+   ```bash
+   docker build -t razzat/internship_recommender .
+   docker run -p 8000:8000 razzat/internship_recommender
+   ```
+
+2. **Using Docker Compose**
    ```bash
    docker-compose up --build
    ```
 
-2. **Using Docker commands**
+3. **Using pre-built image from Docker Hub**
    ```bash
-   docker build -t pm-intern-recommender .
-   docker run -d -p 8000:8000 pm-intern-recommender
+   docker run -p 8000:8000 razzat/internship_recommender
    ```
+
+The Docker container will automatically:
+- **Step 1**: Generate sample datasets (`script.py`)
+- **Step 2**: Train the ML model (`train.py`) 
+- **Step 3**: Start the FastAPI server on port 8000
+
+### Manual Local Setup
+
+If you prefer to run without Docker:
 
 ## API Documentation
 
@@ -278,7 +298,22 @@ cd Recommender
 python recommend.py
 ```
 
-## Model Training
+### Data Generation
+
+The system includes an automated data generation script that creates realistic sample datasets:
+
+```bash
+cd Recommender/dataset
+python script.py
+```
+
+This generates:
+- `students.csv`: 1000 student profiles with diverse skill combinations
+- `internships.csv`: 2000 internship opportunities across various domains
+
+**Note**: Docker automatically runs this script, so manual execution is only needed for local development.
+
+### Model Training
 
 ### Training Process
 
@@ -337,7 +372,34 @@ The FastAPI application includes:
 
 ### Docker Deployment
 
-See `DOCKER.md` for comprehensive Docker deployment instructions.
+The Docker container provides a complete, self-contained deployment:
+
+```bash
+# Option 1: Build locally
+docker build -t razzat/internship_recommender .
+docker run -p 8000:8000 razzat/internship_recommender
+
+# Option 2: Use pre-built image
+docker run -p 8000:8000 razzat/internship_recommender
+
+# Option 3: Docker Compose
+docker-compose up --build
+```
+
+The container automatically executes the complete pipeline:
+1. **Data Generation**: Creates sample datasets with 1000 students and 2000 internships
+2. **Model Training**: Trains TF-IDF vectorizer and k-NN model
+3. **API Startup**: Launches FastAPI server on port 8000
+
+**Container Output Example**:
+```
+Step 1: Running data preprocessing script...
+✅ Files generated: internships.csv, students.csv
+Step 2: Training the model...
+Training completed successfully!
+Step 3: Starting FastAPI server...
+INFO: Uvicorn running on http://0.0.0.0:8000
+```
 
 ## Performance
 
