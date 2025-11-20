@@ -48,8 +48,8 @@ The PM Intern Recommender is a FastAPI-based web service that provides intellige
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd pm-intern-recommender
+   git clone https://github.com/Rajat083/Internship_Recommender
+   cd Internship_Recommender
    ```
 
 2. **Create and activate conda environment**
