@@ -1,7 +1,12 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
 
 from Routes.recommendations import router as recommendations_router
+
+# Load environment variables
+load_dotenv()
 
 app = FastAPI(
     title="Internship Recommender API",
@@ -9,12 +14,17 @@ app = FastAPI(
     version="2.0.0",
 )
 
-# CORS middleware
+# CORS middleware - Allow only specific origins for production
+allowed_origins = os.getenv(
+    "ALLOWED_ORIGINS",
+    "http://localhost:3000"  # Default for local development
+).split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -40,4 +50,5 @@ async def health():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)

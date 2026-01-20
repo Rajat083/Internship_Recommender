@@ -1,0 +1,17 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "nodeVersion": "20.x",
+  "installCommand": "npm install",
+  "env": {
+    "VITE_API_BASE_URL": "@internship-recommender-api-url"
+  },
+  "envPrefix": "VITE_",
+  "rewrites": [
+    {
+      "source": "/:path*",
+      "destination": "/index.html"
+    }
+  ]
+}
