@@ -2,6 +2,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+from DB.VectorDB.BuildIndex import ensure_index_built
 
 from Routes.recommendations import router as recommendations_router
 
@@ -30,6 +31,17 @@ app.add_middleware(
 
 # Include routers
 app.include_router(recommendations_router)
+
+
+@app.on_event("startup")
+def _startup_build_index():
+    """Ensure FAISS index is built at application startup."""
+    try:
+        ensure_index_built()
+    except Exception as e:
+        # Fail fast so the API doesn't run without a usable index
+        print(f"[startup] Error ensuring FAISS index: {e}")
+        raise
 
 
 @app.get("/", tags=["Root"])

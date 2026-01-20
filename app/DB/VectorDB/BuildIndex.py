@@ -51,3 +51,17 @@ def build_index():
 
 if __name__ == "__main__":
     build_index()
+
+def ensure_index_built() -> None:
+    """Build the FAISS index if artifacts are missing.
+
+    Checks for both the index file and the internship IDs file. If either
+    is missing, it triggers a fresh build using the latest data.
+    """
+    index_exists = Path(INDEX_PATH).exists()
+    ids_exists = Path(IDS_PATH).exists()
+    if not (index_exists and ids_exists):
+        print("[vectordb] Index artifacts missing. Building FAISS index...")
+        build_index()
+    else:
+        print(f"[vectordb] Index OK at {INDEX_PATH} (IDs at {IDS_PATH}).")
