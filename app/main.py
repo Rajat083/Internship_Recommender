@@ -1,4 +1,5 @@
 import os
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
@@ -9,10 +10,27 @@ from Routes.recommendations import router as recommendations_router
 # Load environment variables
 load_dotenv()
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """FastAPI lifespan for startup/shutdown tasks.
+
+    Ensures FAISS index is available before serving requests.
+    """
+    try:
+        ensure_index_built()
+    except Exception as e:
+        # Fail fast so the API doesn't run without a usable index
+        print(f"[startup] Error ensuring FAISS index: {e}")
+        raise
+    yield
+    # Add optional shutdown tasks here
+
+
 app = FastAPI(
     title="Internship Recommender API",
     description="API for recommending internships to students based on skills and domain using vector search",
     version="2.0.0",
+    lifespan=lifespan,
 )
 
 # CORS middleware - Allow only specific origins for production
@@ -31,17 +49,6 @@ app.add_middleware(
 
 # Include routers
 app.include_router(recommendations_router)
-
-
-@app.on_event("startup")
-def _startup_build_index():
-    """Ensure FAISS index is built at application startup."""
-    try:
-        ensure_index_built()
-    except Exception as e:
-        # Fail fast so the API doesn't run without a usable index
-        print(f"[startup] Error ensuring FAISS index: {e}")
-        raise
 
 
 @app.get("/", tags=["Root"])
