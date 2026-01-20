@@ -6,7 +6,6 @@
   "env": {
     "VITE_API_BASE_URL": "@internship-recommender-api-url"
   },
-  "envPrefix": "VITE_",
   "rewrites": [
     {
       "source": "/:path*",
